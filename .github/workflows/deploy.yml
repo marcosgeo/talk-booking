@@ -1,0 +1,32 @@
+name: Continuous Integration and Delivery
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  IMAGE: docker.pkg.github.com/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/talk_booking
+
+jobs:
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v2.3.4
+      - name: Log in to GitHub Packages
+        run: echo ${GH_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin docker.pkg.github.com
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Build image
+        run: |
+          docker build \
+            --cache-from ${{ env.IMAGE }}:latest \
+            --tag ${{ env.IMAGE }}:latest \
+            --file ./ci_cd/python/Dockerfile \
+            "./ci_cd"
+      - name: Push image
+        run: |
+          docker push ${{ env.IMAGE }}:latest
