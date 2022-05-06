@@ -1,0 +1,5 @@
+.git/
+.github/
+services/.venv
+services/.idea
+services/.pytest_cache

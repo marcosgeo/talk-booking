@@ -10,9 +10,32 @@ env:
 
 jobs:
 
+  test:
+    name: Test docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v2.3.4
+      - name: Log in to github packages
+        run: echo ${GH_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin docker.pkg.github.com
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Build image and install dependencies
+        run: |
+          make docker/build
+      - name: Quality check
+        run: |
+          make docker/run
+          make docker/flake
+          make docker/black
+          make docker/isort
+          make docker/bandit
+          make docker/safety
+
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: Checkout main
         uses: actions/checkout@v2.3.4
@@ -26,7 +49,7 @@ jobs:
             --cache-from ${{ env.IMAGE }}:latest \
             --tag ${{ env.IMAGE }}:latest \
             --file ./ci_cd/python/Dockerfile \
-            "./ci_cd"
+            "."
       - name: Push image
         run: |
           docker push ${{ env.IMAGE }}:latest
