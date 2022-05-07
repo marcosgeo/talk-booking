@@ -19,3 +19,9 @@ docker/bandit:
 
 docker/safety:
 	docker exec talk-booking bash -c "cd talk_booking && poetry run safety check"
+
+docker/test:
+	docker exec talk-booking bash -c \
+		"cd talk_booking && poetry run python -m pytest tests/ -v --disable-warnings"
+
+	cd "services/talk_booking" && poetry run python -m pytest --cov="."

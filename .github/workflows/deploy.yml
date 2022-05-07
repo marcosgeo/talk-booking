@@ -16,10 +16,11 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v2.3.4
-      - name: Log in to github packages
-        run: echo ${GH_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin docker.pkg.github.com
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Install Poetry and dependencies
+        run: |
+          pip install poetry
+          cd services/talk_booking
+          poetry install
       - name: Build image and install dependencies
         run: |
           make docker/build
@@ -31,6 +32,9 @@ jobs:
           make docker/isort
           make docker/bandit
           make docker/safety
+      - name: Running tests
+        run: |
+          make docker/test
 
   build:
     name: Build Docker Image
